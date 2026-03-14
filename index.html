@@ -132,7 +132,7 @@ const supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
 async function loadTable(){
 
-let {data}=await supabase
+let { data, error } = await supabase
 .from("player")
 .select("*")
 .order("points",{ascending:false})
