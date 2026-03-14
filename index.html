@@ -89,7 +89,7 @@ margin-top:20px;
 
 </header>
 
-<div id="menuPanel">
+<button class="menu" id="menuBtn">☰</button>
 
 <button onclick="showScreen('home')">الرئيسية</button>
 
@@ -194,12 +194,19 @@ document.getElementById(id).classList.add("active")
 }
 
 
-async function loadPlayers(){
+async function loadPlayers()
 
-let {data}=await supabaseClient
-.from("player")
-.select("*")
-.order("points",{ascending:false})
+document.getElementById("menuBtn").addEventListener("click",function(){
+
+let menu=document.getElementById("menuPanel")
+
+if(menu.style.display==="block"){
+menu.style.display="none"
+}else{
+menu.style.display="block"
+}
+
+})
 
 let body=document.getElementById("tableBody")
 
