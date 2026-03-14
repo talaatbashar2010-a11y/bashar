@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>بطولة صعود التشكيلة</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+border:1px solid #333;
+padding:10px;
+}
+
+th{
+background:#007bff;
+}
+
+button{
+padding:10px;
+margin:10px;
+background:#28a745;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+select,input{
+padding:10px;
+margin:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🏆 بطولة صعود التشكيلة</h1>
+
+<h2>جدول الترتيب</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>#</th>
+<th>اللاعب</th>
+<th>لعب</th>
+<th>فوز</th>
+<th>تعادل</th>
+<th>خسارة</th>
+<th>نقاط</th>
+</tr>
+
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
+
+<h2>تسجيل نتيجة مباراة</h2>
+
+<select id="player1"></select>
+
+<input type="number" id="score1" placeholder="الأهداف">
+
+VS
+
+<input type="number" id="score2" placeholder="الأهداف">
+
+<select id="player2"></select>
+
+<br>
+
+<button onclick="saveMatch()">حفظ النتيجة</button>
+
+
+<script>
+
+const SUPABASE_URL="ضع رابط supabase هنا"
+const SUPABASE_KEY="ضع المفتاح هنا"
+
+const { createClient } = supabase
+const db = createClient(SUPABASE_URL,SUPABASE_KEY)
+
+
+async function loadPlayers(){
+
+let {data}=await db
+.from("player")
+.select("*")
+.order("points",{ascending:false})
+
+let table=""
+
+let select1=""
+let select2=""
+
+data.forEach((p,i)=>{
+
+table+=`
+
+<tr>
+
+<td>${i+1}</td>
+<td>${p.name}</td>
+<td>${p.played}</td>
+<td>${p.win}</td>
+<td>${p.draw}</td>
+<td>${p.loss}</td>
+<td>${p.points}</td>
+
+</tr>
+
+`
+
+select1+=`<option value="${p.id}">${p.name}</option>`
+select2+=`<option value="${p.id}">${p.name}</option>`
+
+})
+
+document.getElementById("table").innerHTML=table
+document.getElementById("player1").innerHTML=select1
+document.getElementById("player2").innerHTML=select2
+
+}
+
+
+async function saveMatch(){
+
+let p1=document.getElementById("player1").value
+let p2=document.getElementById("player2").value
+
+let s1=parseInt(document.getElementById("score1").value)
+let s2=parseInt(document.getElementById("score2").value)
+
+let {data}=await db.from("player").select("*")
+
+let player1=data.find(p=>p.id==p1)
+let player2=data.find(p=>p.id==p2)
+
+player1.played++
+player2.played++
+
+if(s1>s2){
+
+player1.win++
+player1.points+=3
+player2.loss++
+
+}
+
+else if(s2>s1){
+
+player2.win++
+player2.points+=3
+player1.loss++
+
+}
+
+else{
+
+player1.draw++
+player2.draw++
+player1.points++
+player2.points++
+
+}
+
+await db.from("player").update(player1).eq("id",p1)
+await db.from("player").update(player2).eq("id",p2)
+
+loadPlayers()
+
+}
+
+loadPlayers()
+
+</script>
+
+</body>
+
+</html>
