@@ -3,81 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار القائمة - صعود التشكيلة</title>
+    <title>فحص بيانات صعود التشكيلة</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #16263f;
-            --bg: #0b1a33;
-            --text: #ffffff;
-        }
-
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        
-        /* الهيدر */
-        header { 
-            background: var(--secondary); 
-            padding: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 3px solid var(--primary);
-            position: sticky; top: 0; z-index: 2000;
-        }
-
-        .menu-btn { font-size: 30px; cursor: pointer; color: var(--primary); padding: 5px 15px; }
-
-        /* القائمة المنسدلة */
-        #menuPanel { 
-            display: none; 
-            position: fixed; top: 65px; left: 0; right: 0;
-            background: var(--secondary); 
-            flex-direction: column; padding: 10px;
-            border-bottom: 2px solid var(--primary);
-            z-index: 1999;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        #menuPanel.active { display: flex; }
-
-        button { 
-            padding: 15px; margin: 5px 0; border: none; 
-            background: rgba(255,255,255,0.1); color: white; 
-            border-radius: 5px; font-weight: bold; font-size: 16px;
-        }
-
-        .screen { display: none; padding: 50px 20px; text-align: center; }
-        .screen.active { display: block; }
+        body { font-family: sans-serif; background: #0b1a33; color: white; text-align: center; padding: 20px; }
+        .card { background: #16263f; padding: 15px; border-radius: 10px; margin: 10px auto; max-width: 500px; border: 1px solid #2563eb; }
+        .status { color: #22c55e; font-weight: bold; margin-bottom: 20px; }
+        .error { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; background: white; color: #333; margin-top: 10px; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        th { background: #2563eb; color: white; }
+        .match-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="width:40px"></div>
-    <h3>🏆 صعود التشكيلة</h3>
-    <div class="menu-btn" onclick="toggleMenu()">☰</div>
-</header>
+    <h2>📊 فحص الاتصال وقاعدة البيانات</h2>
+    <div id="connectionStatus" class="status">جاري الاتصال بـ Supabase...</div>
 
-<nav id="menuPanel">
-    <button onclick="changeScreen('home')">🏠 الرئيسية</button>
-    <button onclick="changeScreen('table')">📊 الترتيب</button>
-    <button onclick="changeScreen('rounds')">📅 الجولات</button>
-</nav>
+    <div class="card">
+        <h3>👥 قائمة اللاعبين (من الجدول)</h3>
+        <div id="playersList">جاري التحميل...</div>
+    </div>
 
-<div id="home" class="screen active"><h1>الشاشة الرئيسية شغال ✅</h1></div>
-<div id="table" class="screen"><h1>شاشة الجدول شغال ✅</h1></div>
-<div id="rounds" class="screen"><h1>شاشة الجولات شغال ✅</h1></div>
+    <div class="card">
+        <h3>⚽ مباريات الجولة (المسجلة)</h3>
+        <select id="roundSelector" onchange="displayMatches()" style="padding: 10px; width: 100%;">
+            <option value="1">الجولة 1</option>
+            <option value="2">الجولة 2</option>
+            <option value="3">الجولة 3</option>
+        </select>
+        <div id="matchesList" style="margin-top: 15px;">لا توجد مباريات بعد.</div>
+    </div>
 
 <script>
-    function toggleMenu() {
-        document.getElementById('menuPanel').classList.toggle('active');
+    const SUPABASE_URL = "https://phgeppldziwtjqmomvlt.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZ2VwcGxkeml3dGpxbW9tdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NDYwNTIsImV4cCI6MjA4OTAzMjA1Mn0.eKq3YFv_3F28p8h27K986m-047zK8H551qP8f_1u-3I";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allMatches = [];
+
+    async function checkData() {
+        try {
+            // 1. جلب اللاعبين
+            const { data: players, error: pError } = await supabase.from('player').select('*');
+            if (pError) throw pError;
+
+            let playersHTML = "<table><tr><th>اللاعب</th><th>النقاط</th></tr>";
+            players.forEach(p => {
+                playersHTML += `<tr><td>${p.name}</td><td>${p.points}</td></tr>`;
+            });
+            playersHTML += "</table>";
+            document.getElementById('playersList').innerHTML = playersHTML;
+
+            // 2. جلب المباريات
+            const { data: matches, error: mError } = await supabase.from('matches').select('*');
+            if (mError) {
+                document.getElementById('matchesList').innerHTML = "<p class='error'>جدول matches غير موجود في Supabase أو الأسماء غلط</p>";
+            } else {
+                allMatches = matches || [];
+                displayMatches();
+            }
+
+            document.getElementById('connectionStatus').innerText = "✅ متصل وجلب البيانات بنجاح!";
+        } catch (err) {
+            document.getElementById('connectionStatus').innerHTML = `<span class="error">❌ خطأ: ${err.message}</span>`;
+            console.error(err);
+        }
     }
 
-    function changeScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('menuPanel').classList.remove('active');
+    function displayMatches() {
+        const round = document.getElementById('roundSelector').value;
+        const container = document.getElementById('matchesList');
+        const filtered = allMatches.filter(m => m.round == round);
+
+        if (filtered.length === 0) {
+            container.innerHTML = "لا توجد مباريات مسجلة لهذه الجولة.";
+            return;
+        }
+
+        let html = "";
+        filtered.forEach(m => {
+            html += `<div class="match-row">
+                        <span>${m.p1_name}</span>
+                        <b style="color:#2563eb">${m.p1_score} - ${m.p2_score}</b>
+                        <span>${m.p2_name}</span>
+                    </div>`;
+        });
+        container.innerHTML = html;
     }
+
+    window.onload = checkData;
 </script>
 </body>
 </html>
