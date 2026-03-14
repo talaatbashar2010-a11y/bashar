@@ -1,55 +1,64 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
+<html lang="ar">
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>بطولة صعود التشكيلة</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
 
 body{
+font-family: Arial;
 background:#111;
 color:white;
-font-family:Arial;
 text-align:center;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
+h1{
 margin-top:20px;
-}
-
-th,td{
-border:1px solid #333;
-padding:10px;
-}
-
-th{
-background:#007bff;
 }
 
 button{
 padding:10px;
-margin:10px;
+margin:5px;
+border:none;
+border-radius:6px;
 background:#28a745;
 color:white;
-border:none;
+font-size:16px;
 cursor:pointer;
 }
 
-select,input{
+table{
+width:90%;
+margin:auto;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #444;
 padding:10px;
-margin:5px;
+}
+
+th{
+background:#007aff;
+}
+
+.match{
+background:#222;
+padding:15px;
+margin:10px;
+border-radius:10px;
+}
+
+input{
+width:50px;
+text-align:center;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -59,147 +68,171 @@ margin:5px;
 <h2>جدول الترتيب</h2>
 
 <table>
-
 <thead>
-
 <tr>
-<th>#</th>
 <th>اللاعب</th>
 <th>لعب</th>
 <th>فوز</th>
 <th>تعادل</th>
 <th>خسارة</th>
+<th>له</th>
+<th>عليه</th>
 <th>نقاط</th>
 </tr>
-
 </thead>
 
-<tbody id="table"></tbody>
+<tbody id="tableBody"></tbody>
 
 </table>
 
+<h2>📅 الجولة 1</h2>
 
-<h2>تسجيل نتيجة مباراة</h2>
+<div class="match">
 
-<select id="player1"></select>
+أحمد طواب 🆚 بشار طلعت
 
-<input type="number" id="score1" placeholder="الأهداف">
+<br><br>
 
-VS
+<input id="g1a"> -
 
-<input type="number" id="score2" placeholder="الأهداف">
+<input id="g1b">
 
-<select id="player2"></select>
+<br><br>
 
-<br>
+<button onclick="saveMatch('أحمد طواب','بشار طلعت','g1a','g1b')">
+حفظ النتيجة
+</button>
 
-<button onclick="saveMatch()">حفظ النتيجة</button>
+</div>
 
+<div class="match">
 
-<script> 
+محمد عماد 🆚 أسر محمد
 
-  const SUPABASE_URL="https://phgeppldziwtjqmomvlt.supabase.co"
+<br><br>
+
+<input id="g2a"> -
+
+<input id="g2b">
+
+<br><br>
+
+<button onclick="saveMatch('محمد عماد','أسر محمد','g2a','g2b')">
+حفظ النتيجة
+</button>
+
+</div>
+
+<script>
+
+const SUPABASE_URL="https://phgeppldziwtjqmomvlt.supabase.co"
 
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZ2VwcGxkeml3dGpxbW9tdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0OTY4NTksImV4cCI6MjA4OTA3Mjg1OX0.d-wOoHmvY1DkyukIDWX6XyBGEuML2s9aybaLaJ8E41A"
+  "
 
-const { createClient } = supabase
-const db = createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
+async function loadTable(){
 
-async function loadPlayers(){
-
-let {data}=await db
+let {data}=await supabase
 .from("player")
 .select("*")
 .order("points",{ascending:false})
 
-let table=""
+let body=document.getElementById("tableBody")
 
-let select1=""
-let select2=""
+body.innerHTML=""
 
-data.forEach((p,i)=>{
+data.forEach(p=>{
 
-table+=`
+body.innerHTML+=`
 
 <tr>
 
-<td>${i+1}</td>
 <td>${p.name}</td>
+
 <td>${p.played}</td>
+
 <td>${p.win}</td>
+
 <td>${p.draw}</td>
+
 <td>${p.loss}</td>
+
+<td>${p.goals_for}</td>
+
+<td>${p.goals_against}</td>
+
 <td>${p.points}</td>
 
 </tr>
 
 `
 
-select1+=`<option value="${p.id}">${p.name}</option>`
-select2+=`<option value="${p.id}">${p.name}</option>`
-
 })
 
-document.getElementById("table").innerHTML=table
-document.getElementById("player1").innerHTML=select1
-document.getElementById("player2").innerHTML=select2
+}
+
+async function saveMatch(p1,p2,id1,id2){
+
+let g1=parseInt(document.getElementById(id1).value)
+
+let g2=parseInt(document.getElementById(id2).value)
+
+let {data:players}=await supabase
+.from("player")
+.select("*")
+.in("name",[p1,p2])
+
+let A=players.find(x=>x.name==p1)
+
+let B=players.find(x=>x.name==p2)
+
+A.played++
+B.played++
+
+A.goals_for+=g1
+A.goals_against+=g2
+
+B.goals_for+=g2
+B.goals_against+=g1
+
+if(g1>g2){
+
+A.win++
+A.points+=3
+B.loss++
 
 }
 
+else if(g2>g1){
 
-async function saveMatch(){
-
-let p1=document.getElementById("player1").value
-let p2=document.getElementById("player2").value
-
-let s1=parseInt(document.getElementById("score1").value)
-let s2=parseInt(document.getElementById("score2").value)
-
-let {data}=await db.from("player").select("*")
-
-let player1=data.find(p=>p.id==p1)
-let player2=data.find(p=>p.id==p2)
-
-player1.played++
-player2.played++
-
-if(s1>s2){
-
-player1.win++
-player1.points+=3
-player2.loss++
-
-}
-
-else if(s2>s1){
-
-player2.win++
-player2.points+=3
-player1.loss++
+B.win++
+B.points+=3
+A.loss++
 
 }
 
 else{
 
-player1.draw++
-player2.draw++
-player1.points++
-player2.points++
+A.draw++
+B.draw++
+A.points++
+B.points++
 
 }
 
-await db.from("player").update(player1).eq("id",p1)
-await db.from("player").update(player2).eq("id",p2)
+await supabase.from("player").update(A).eq("id",A.id)
 
-loadPlayers()
+await supabase.from("player").update(B).eq("id",B.id)
+
+loadTable()
 
 }
 
-loadPlayers()
+loadTable()
 
 </script>
 
 </body>
-
 </html>
