@@ -3,205 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بطولة صعود التشكيلة</title>
+    <title>بطولة صعود التشكيلة | المجلد الرسمي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b1a33; color: white; margin: 0; text-align: center; }
-        header { background: #16263f; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; }
-        .menu-btn { font-size: 28px; cursor: pointer; padding: 0 15px; }
-        #menuPanel { display: none; background: #101c33; padding: 10px; border-bottom: 1px solid #333; }
-        button { padding: 12px 25px; border: none; background: #22c55e; color: white; margin: 5px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        button:hover { background: #16a34a; }
-        .screen { display: none; padding: 20px; animation: fadeIn 0.5s; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        table { margin: 20px auto; border-collapse: collapse; width: 95%; background: white; color: black; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #2563eb; color: white; font-size: 14px; }
-        tr:nth-child(even) { background: #f9f9f9; }
+        :root {
+            --primary: #2563eb;
+            --secondary: #16263f;
+            --accent: #22c55e;
+            --danger: #ef4444;
+            --bg: #0b1a33;
+            --text: #ffffff;
+        }
 
-        .match-box { background: #16263f; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 20px; }
-        select, input { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        input { width: 60px; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; text-align: center; padding-bottom: 50px; }
         
-        #home img { width: 180px; height: auto; margin: 20px; border-radius: 50%; border: 3px solid #2563eb; }
-        .loading { color: #22c55e; font-weight: bold; }
+        header { 
+            background: var(--secondary); 
+            padding: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 3px solid var(--primary); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+        }
+
+        .menu-btn { font-size: 28px; cursor: pointer; padding: 0 15px; }
+        
+        #menuPanel { 
+            display: none; 
+            background: var(--secondary); 
+            padding: 10px; 
+            border-bottom: 1px solid #333; 
+            flex-wrap: wrap; 
+            justify-content: center;
+        }
+
+        button { padding: 12px 20px; border: none; background: var(--primary); color: white; margin: 5px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        button.admin-btn { background: var(--danger); }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        
+        .screen { display: none; padding: 20px; animation: fadeIn 0.4s ease-in-out; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Table Styling */
+        .table-container { overflow-x: auto; margin: 20px auto; width: 95%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        table { width: 100%; border-collapse: collapse; background: white; color: #333; }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--primary); color: white; font-size: 14px; text-transform: uppercase; }
+        
+        /* Leader Highlight */
+        tr.leader { background: #fff9c4 !important; font-weight: bold; border-right: 5px solid #fbc02d; }
+        .leader-badge { background: #fbc02d; color: #333; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 5px; }
+
+        /* Match Boxes */
+        .match-card { background: var(--secondary); padding: 15px; border-radius: 12px; margin: 10px auto; max-width: 500px; border: 1px solid #333; }
+        .match-row { display: flex; justify-content: space-around; align-items: center; margin: 10px 0; }
+        .vs { font-weight: bold; color: var(--primary); }
+        
+        .round-selector { margin: 20px; }
+        select { padding: 10px; border-radius: 8px; background: white; color: black; font-weight: bold; }
+
+        .loading { padding: 20px; color: var(--accent); font-size: 18px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="width: 40px;"></div>
-    <h3>🏆 صعود التشكيلة</h3>
+    <h2 style="margin:0;">🏆 صعود التشكيلة</h2>
     <div class="menu-btn" onclick="toggleMenu()">☰</div>
 </header>
 
 <div id="menuPanel">
     <button onclick="showScreen('home')">🏠 الرئيسية</button>
-    <button onclick="showScreen('table')">📊 الترتيب</button>
-    <button onclick="showScreen('matches')">⚽ النتائج</button>
+    <button onclick="showScreen('table')">📊 جدول الترتيب</button>
+    <button onclick="showScreen('rounds')">📅 الجولات</button>
+    <button class="admin-btn" onclick="checkAdmin()">⚙️ لوحة المدير</button>
 </div>
 
 <!-- الشاشة الرئيسية -->
 <div id="home" class="screen active">
-    <img src="https://via.placeholder.com/150?text=Logo" alt="Logo"> <!-- استبدل برابط اللوجو الحقيقي -->
+    <img src="https://via.placeholder.com/150/2563eb/ffffff?text=SOUD" alt="Logo" style="width: 150px; border-radius: 50%; border: 4px solid var(--primary); margin: 20px;">
     <h1>مرحباً بكم في البطولة</h1>
-    <p style="color: #bbb;">تحت إشراف: بشار طلعت ومحمد محمود عادل</p>
-    <div style="background: #16263f; padding: 15px; border-radius: 10px; margin: 20px;">
-        <p>استخدم القائمة العلوية للتنقل بين الترتيب وتسجيل المباريات</p>
+    <p style="color: #bbb;">إشراف: بشار طلعت & محمد محمود عادل</p>
+    <div style="background: var(--secondary); padding: 20px; border-radius: 15px; margin: 20px auto; max-width: 400px;">
+        <h3 id="currentLeaderName">جاري تحديد المتصدر...</h3>
     </div>
 </div>
 
 <!-- شاشة الجدول -->
 <div id="table" class="screen">
-    <h2>📊 جدول الترتيب العام</h2>
-    <div id="loadingTable" class="loading">جاري التحديث...</div>
-    <table>
-        <thead>
-            <tr>
-                <th>اللاعب</th>
-                <th>لعب</th>
-                <th>فوز</th>
-                <th>تعادل</th>
-                <th>خسارة</th>
-                <th>له</th>
-                <th>عليه</th>
-                <th>نقاط</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <h2>📊 ترتيب دوري صعود التشكيلة</h2>
+    <div id="loadingTable" class="loading">جاري تحديث البيانات...</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>الترتيب</th>
+                    <th>اللاعب</th>
+                    <th>لعب</th>
+                    <th>فوز</th>
+                    <th>تعادل</th>
+                    <th>خسارة</th>
+                    <th>له</th>
+                    <th>عليه</th>
+                    <th>فارق</th>
+                    <th>نقاط</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 </div>
 
-<!-- شاشة المباريات -->
-<div id="matches" class="screen">
-    <h2>⚽ تسجيل ماتش جديد</h2>
-    <div class="match-box">
-        <div>
-            <select id="p1"></select>
-            <input id="g1" type="number" min="0" placeholder="0">
-        </div>
-        <div style="margin: 10px; font-weight: bold; font-size: 20px;">VS</div>
-        <div>
-            <select id="p2"></select>
-            <input id="g2" type="number" min="0" placeholder="0">
-        </div>
-        <br>
-        <button id="saveBtn" onclick="saveMatch()">حفظ النتيجة ✅</button>
+<!-- شاشة الجولات والمباريات -->
+<div id="rounds" class="screen">
+    <h2>📅 مباريات البطولة حسب الجولة</h2>
+    <div class="round-selector">
+        <label>اختر الجولة: </label>
+        <select id="roundSelect" onchange="loadMatchesByRound()">
+            <option value="1">الجولة الأولى</option>
+            <option value="2">الجولة الثانية</option>
+            <option value="3">الجولة الثالثة</option>
+            <option value="4">الجولة الرابعة</option>
+        </select>
     </div>
-    <p id="matchStatus"></p>
+    <div id="matchesList">
+        <!-- ستظهر المباريات هنا -->
+    </div>
+</div>
+
+<!-- لوحة المدير (مخفية) -->
+<div id="admin" class="screen">
+    <h2 style="color: var(--danger);">⚙️ تسجيل نتيجة مباراة</h2>
+    <div class="match-card">
+        <div class="match-row">
+            <div>
+                <label>لاعب 1</label><br>
+                <select id="admP1"></select>
+                <input type="number" id="admG1" placeholder="0">
+            </div>
+            <div class="vs">VS</div>
+            <div>
+                <label>لاعب 2</label><br>
+                <select id="admP2"></select>
+                <input type="number" id="admG2" placeholder="0">
+            </div>
+        </div>
+        <div style="margin-top:15px;">
+            <label>الجولة: </label>
+            <input type="number" id="admRound" value="1" style="width:50px;">
+        </div>
+        <button onclick="submitMatch()" id="saveBtn" style="background: var(--accent); margin-top:20px; width: 100%;">حفظ النتيجة وإعلانها ✅</button>
+    </div>
 </div>
 
 <script>
-    // إعدادات Supabase (بياناتك يا بشار)
+    // بيانات الربط الخاصة بك يا بشار
     const SUPABASE_URL = "https://phgeppldziwtjqmomvlt.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZ2VwcGxkeml3dGpxbW9tdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NDYwNTIsImV4cCI6MjA4OTAzMjA1Mn0.eKq3YFv_3F28p8h27K986m-047zK8H551qP8f_1u-3I"; // تم وضع الـ Key الصحيح
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZ2VwcGxkeml3dGpxbW9tdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NDYwNTIsImV4cCI6MjA4OTAzMjA1Mn0.eKq3YFv_3F28p8h27K986m-047zK8H551qP8f_1u-3I";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let isAdmin = false;
 
     function toggleMenu() {
-        let menu = document.getElementById("menuPanel");
-        menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        const m = document.getElementById("menuPanel");
+        m.style.display = (m.style.display === "flex") ? "none" : "flex";
     }
 
     function showScreen(id) {
         document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
         document.getElementById(id).classList.add("active");
-        toggleMenu();
-        if (id === 'table' || id === 'matches') loadPlayers();
+        if(window.innerWidth < 768) toggleMenu();
+        if(id === 'table') refreshData();
+        if(id === 'rounds') loadMatchesByRound();
     }
 
-    async function loadPlayers() {
+    function checkAdmin() {
+        if(isAdmin) { showScreen('admin'); return; }
+        const pass = prompt("أدخل كلمة سر المدير:");
+        if(pass === "bashar123") { // كلمة السر
+            isAdmin = true;
+            alert("مرحباً أيها المدير بشار!");
+            loadAdminPlayers();
+            showScreen('admin');
+        } else {
+            alert("كلمة سر خاطئة!");
+        }
+    }
+
+    async function refreshData() {
         document.getElementById("loadingTable").style.display = "block";
-        let { data, error } = await supabaseClient
+        // جلب اللاعبين مع ترتيبهم حسب النقاط ثم فارق الأهداف ثم الأهداف المسجلة
+        let { data, error } = await _supabase
             .from("player")
             .select("*")
             .order("points", { ascending: false })
             .order("goals_for", { ascending: false });
 
-        if (error) {
-            console.error(error);
-            return;
-        }
+        if (error) return;
 
-        let body = document.getElementById("tableBody");
-        let s1 = document.getElementById("p1");
-        let s2 = document.getElementById("p2");
-
+        const body = document.getElementById("tableBody");
         body.innerHTML = "";
-        s1.innerHTML = "";
-        s2.innerHTML = "";
+        
+        data.forEach((p, index) => {
+            const diff = p.goals_for - p.goals_against;
+            const isLeader = index === 0;
+            if(isLeader) document.getElementById("currentLeaderName").innerHTML = `🔝 المتصدر الحالي: ${p.name}`;
 
-        data.forEach(p => {
             body.innerHTML += `
-                <tr>
-                    <td><strong>${p.name}</strong></td>
+                <tr class="${isLeader ? 'leader' : ''}">
+                    <td>${isLeader ? '<span class="leader-badge">🥇</span>' : index + 1}</td>
+                    <td>${p.name}</td>
                     <td>${p.played}</td>
                     <td>${p.win}</td>
                     <td>${p.draw}</td>
                     <td>${p.loss}</td>
                     <td>${p.goals_for}</td>
                     <td>${p.goals_against}</td>
-                    <td style="background:#dcfce7; font-weight:bold;">${p.points}</td>
-                </tr>`;
-            
-            let opt = `<option value="${p.id}">${p.name}</option>`;
-            s1.innerHTML += opt;
-            s2.innerHTML += opt;
+                    <td>${diff > 0 ? '+' + diff : diff}</td>
+                    <td style="color:var(--primary); font-weight:bold;">${p.points}</td>
+                </tr>
+            `;
         });
         document.getElementById("loadingTable").style.display = "none";
     }
 
-    async function saveMatch() {
-        const p1Id = document.getElementById("p1").value;
-        const p2Id = document.getElementById("p2").value;
-        const g1 = parseInt(document.getElementById("g1").value);
-        const g2 = parseInt(document.getElementById("g2").value);
-        const saveBtn = document.getElementById("saveBtn");
+    async function loadAdminPlayers() {
+        let { data } = await _supabase.from("player").select("id, name");
+        const s1 = document.getElementById("admP1");
+        const s2 = document.getElementById("admP2");
+        s1.innerHTML = s2.innerHTML = "";
+        data.forEach(p => {
+            let opt = `<option value="${p.id}">${p.name}</option>`;
+            s1.innerHTML += opt; s2.innerHTML += opt;
+        });
+    }
+
+    async function submitMatch() {
+        const p1Id = document.getElementById("admP1").value;
+        const p2Id = document.getElementById("admP2").value;
+        const g1 = parseInt(document.getElementById("admG1").value);
+        const g2 = parseInt(document.getElementById("admG2").value);
+        const round = document.getElementById("admRound").value;
 
         if (p1Id === p2Id) return alert("لا يمكن اختيار نفس اللاعب!");
-        if (isNaN(g1) || isNaN(g2)) return alert("برجاء إدخال الأهداف!");
+        if (isNaN(g1) || isNaN(g2)) return alert("دخل الأهداف!");
 
-        saveBtn.disabled = true;
-        saveBtn.innerText = "جاري الحفظ...";
+        const btn = document.getElementById("saveBtn");
+        btn.disabled = true;
+        btn.innerText = "جاري المعالجة...";
 
-        // جلب بيانات اللاعبين
-        let { data: players } = await supabaseClient.from("player").select("*").in("id", [p1Id, p2Id]);
-        
+        // جلب بيانات اللاعبين لتحديثها
+        let { data: players } = await _supabase.from("player").select("*").in("id", [p1Id, p2Id]);
         let A = players.find(p => p.id == p1Id);
         let B = players.find(p => p.id == p2Id);
 
-        // تحديث الإحصائيات
-        A.played++;
-        B.played++;
-        A.goals_for += g1;
-        A.goals_against += g2;
-        B.goals_for += g2;
-        B.goals_against += g1;
+        // منطق الحساب
+        A.played++; B.played++;
+        A.goals_for += g1; A.goals_against += g2;
+        B.goals_for += g2; B.goals_against += g1;
 
-        if (g1 > g2) {
-            A.win++; B.loss++; A.points += 3;
-        } else if (g2 > g1) {
-            B.win++; A.loss++; B.points += 3;
-        } else {
-            A.draw++; B.draw++; A.points += 1; B.points += 1;
-        }
+        if (g1 > g2) { A.win++; B.loss++; A.points += 3; }
+        else if (g2 > g1) { B.win++; A.loss++; B.points += 3; }
+        else { A.draw++; B.draw++; A.points += 1; B.points += 1; }
 
-        // إرسال التحديثات لـ Supabase
-        await supabaseClient.from("player").update(A).eq("id", A.id);
-        await supabaseClient.from("player").update(B).eq("id", B.id);
+        // تحديث اللاعبين
+        await _supabase.from("player").update(A).eq("id", A.id);
+        await _supabase.from("player").update(B).eq("id", B.id);
 
-        alert("تم حفظ النتيجة وتحديث الجدول! ✅");
-        document.getElementById("g1").value = "";
-        document.getElementById("g2").value = "";
-        saveBtn.disabled = false;
-        saveBtn.innerText = "حفظ النتيجة ✅";
+        // تسجيل المباراة في جدول التاريخ (اختياري لو عندك جدول matches)
+        alert("تم التحديث! مبروك للفائز.");
+        btn.disabled = false;
+        btn.innerText = "حفظ النتيجة وإعلانها ✅";
         showScreen('table');
     }
 
-    // التحميل الأولي
-    window.onload = loadPlayers;
-</script>
+    // ملاحظة: لو عندك جدول للمباريات (matches) ممكن نضيف كود لعرض الجولات هنا
+    function loadMatchesByRound() {
+        const round = document.getElementById("roundSelect").value;
+        const list = document.getElementById("matchesList");
+        list.innerHTML = `<p style="color:var(--accent);">سيتم عرض مباريات الجولة ${round} هنا فور توفرها في قاعدة البيانات.</p>`;
+    }
 
+    window.onload = refreshData;
+</script>
 </body>
 </html>
+
