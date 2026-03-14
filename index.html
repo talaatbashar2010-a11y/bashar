@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بطولة صعود التشكيلة</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#121212;
+color:white;
+text-align:center;
+padding:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+background:#1e1e1e;
+}
+
+th,td{
+border:1px solid #333;
+padding:10px;
+}
+
+th{
+background:#007bff;
+}
+
+tr:nth-child(even){
+background:#252525;
+}
+
+select,input,button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:6px;
+}
+
+button{
+background:#28a745;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#218838;
+}
+
+.leader{
+background:#ffd700;
+color:black;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🏆 بطولة صعود التشكيلة</h1>
+
+<div id="leader" class="leader"></div>
+
+<table>
+
+<thead>
+<tr>
+<th>المركز</th>
+<th>اللاعب</th>
+<th>لعب</th>
+<th>فوز</th>
+<th>تعادل</th>
+<th>خسارة</th>
+<th>نقاط</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+<h3>⚽ تسجيل مباراة</h3>
+
+<select id="player1"></select>
+
+<select id="player2"></select>
+
+<input type="number" id="goal1" placeholder="اهداف">
+
+<input type="number" id="goal2" placeholder="اهداف">
+
+<button onclick="saveMatch()">حفظ النتيجة</button>
+
+</div>
+
+<script>
+
+const SUPABASE_URL="PUT_SUPABASE_URL";
+const SUPABASE_KEY="PUT_SUPABASE_KEY";
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL,SUPABASE_KEY);
+
+async function loadTable(){
+
+const {data}=await db
+.from("bashar")
+.select("*")
+.order("points",{ascending:false})
+
+const table=document.getElementById("tableBody")
+const p1=document.getElementById("player1")
+const p2=document.getElementById("player2")
+
+table.innerHTML=""
+p1.innerHTML=""
+p2.innerHTML=""
+
+data.forEach((p,i)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${i+1}</td>
+<td>${p.name}</td>
+<td>${p.played||0}</td>
+<td>${p.win||0}</td>
+<td>${p.draw||0}</td>
+<td>${p.loss||0}</td>
+<td>${p.points||0}</td>
+</tr>
+`
+
+p1.innerHTML+=`<option value="${p.id}">${p.name}</option>`
+p2.innerHTML+=`<option value="${p.id}">${p.name}</option>`
+
+})
+
+if(data.length>0){
+document.getElementById("leader").innerHTML=
+"👑 المتصدر: "+data[0].name+" - "+data[0].points+" نقطة"
+}
+
+}
+
+async function saveMatch(){
+
+let a=document.getElementById("player1").value
+let b=document.getElementById("player2").value
+
+let g1=parseInt(document.getElementById("goal1").value)
+let g2=parseInt(document.getElementById("goal2").value)
+
+if(a==b) return alert("اختار لاعبين مختلفين")
+
+let {data:players}=await db
+.from("bashar")
+.select("*")
+.in("id",[a,b])
+
+let A=players.find(p=>p.id==a)
+let B=players.find(p=>p.id==b)
+
+A.played++
+B.played++
+
+if(g1>g2){
+A.win++
+B.loss++
+A.points+=3
+}
+else if(g2>g1){
+B.win++
+A.loss++
+B.points+=3
+}
+else{
+A.draw++
+B.draw++
+A.points+=1
+B.points+=1
+}
+
+await db.from("bashar").update(A).eq("id",A.id)
+await db.from("bashar").update(B).eq("id",B.id)
+
+loadTable()
+
+}
+
+loadTable()
+
+</script>
+
+</body>
+</html>
