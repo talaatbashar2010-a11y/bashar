@@ -10,14 +10,14 @@
 
 body{
 font-family:Arial;
-background:#0f172a;
+background:#0b1a33;
 color:white;
 margin:0;
 text-align:center;
 }
 
 header{
-background:#1e293b;
+background:#16263f;
 padding:15px;
 display:flex;
 justify-content:space-between;
@@ -25,13 +25,13 @@ align-items:center;
 }
 
 .menu{
-font-size:25px;
+font-size:26px;
 cursor:pointer;
 }
 
 #menuPanel{
 display:none;
-background:#111827;
+background:#101c33;
 padding:10px;
 }
 
@@ -40,26 +40,8 @@ padding:10px 20px;
 border:none;
 background:#22c55e;
 color:white;
-cursor:pointer;
 margin:5px;
-}
-
-table{
-margin:auto;
-border-collapse:collapse;
-width:90%;
-background:white;
-color:black;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:8px;
-}
-
-th{
-background:#2563eb;
-color:white;
+cursor:pointer;
 }
 
 .screen{
@@ -71,6 +53,29 @@ padding:20px;
 display:block;
 }
 
+table{
+margin:auto;
+border-collapse:collapse;
+width:90%;
+background:white;
+color:black;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:8px;
+}
+
+th{
+background:#2563eb;
+color:white;
+}
+
+#home img{
+width:240px;
+margin-top:20px;
+}
+
 </style>
 </head>
 
@@ -78,7 +83,7 @@ display:block;
 
 <header>
 
-<h2>بطولة صعود التشكيلة</h2>
+<h3>بطولة صعود التشكيلة</h3>
 
 <div class="menu" onclick="toggleMenu()">☰</div>
 
@@ -94,13 +99,21 @@ display:block;
 
 </div>
 
+
 <div id="home" class="screen active">
 
-<h1>مرحبا بكم في البطولة</h1>
+<img src="logo.png">
+
+<h1>مرحبا بكم في بطولة صعود التشكيلة</h1>
 
 <p>اختر من القائمة لعرض الميزات</p>
 
+<p>تحت إشراف بشار طلعت ومحمد محمود عادل</p>
+
+<p>تم إنشاء الويب بواسطة بشار طلعت</p>
+
 </div>
+
 
 <div id="table" class="screen">
 
@@ -129,6 +142,7 @@ display:block;
 
 </div>
 
+
 <div id="matches" class="screen">
 
 <h2>تسجيل نتيجة مباراة</h2>
@@ -143,40 +157,46 @@ VS
 
 <br><br>
 
-<input id="code" placeholder="كود اللاعب">
-
-<br><br>
-
 <button onclick="saveMatch()">حفظ النتيجة</button>
 
 </div>
 
+
 <script>
 
 const SUPABASE_URL="https://phgeppldziwtjqmomvlt.supabase.co"
-const SUPABASE_KEY="PUT_YOUR_KEY_HERE"
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZ2VwcGxkeml3dGpxbW9tdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0OTY4NTksImV4cCI6MjA4OTA3Mjg1OX0.d-wOoHmvY1DkyukIDWX6XyBGEuML2s9aybaLaJ8E41A"
 
-const supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+
 
 function toggleMenu(){
 
 let menu=document.getElementById("menuPanel")
 
-menu.style.display=menu.style.display==="block"?"none":"block"
+if(menu.style.display==="block"){
+menu.style.display="none"
+}else{
+menu.style.display="block"
+}
 
 }
 
+
 function showScreen(id){
 
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active")
+})
 
 document.getElementById(id).classList.add("active")
 
 }
 
+
 async function loadPlayers(){
 
-let {data}=await supabase
+let {data}=await supabaseClient
 .from("player")
 .select("*")
 .order("points",{ascending:false})
@@ -217,6 +237,7 @@ s2.innerHTML+=`<option>${p.name}</option>`
 
 }
 
+
 async function saveMatch(){
 
 let p1=document.getElementById("p1").value
@@ -225,14 +246,7 @@ let p2=document.getElementById("p2").value
 let g1=parseInt(document.getElementById("g1").value)
 let g2=parseInt(document.getElementById("g2").value)
 
-let code=document.getElementById("code").value
-
-if(code!=="1234"){
-alert("كود غير صحيح")
-return
-}
-
-let {data:players}=await supabase
+let {data:players}=await supabaseClient
 .from("player")
 .select("*")
 .or(`name.eq.${p1},name.eq.${p2}`)
@@ -268,12 +282,13 @@ A.points++
 B.points++
 }
 
-await supabase.from("player").update(A).eq("id",A.id)
-await supabase.from("player").update(B).eq("id",B.id)
+await supabaseClient.from("player").update(A).eq("id",A.id)
+await supabaseClient.from("player").update(B).eq("id",B.id)
 
 loadPlayers()
 
 }
+
 
 loadPlayers()
 
